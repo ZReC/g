@@ -258,10 +258,10 @@
                 } else {
                     plaintext = tE.encode(content.value);
                     try {
-                        if (plaintext.length > 0x400)
+                        if (plaintext.byteLength > 0x400)
                             throw 'too long';
                         else
-                            new URL(plaintext);
+                            new URL(content.value);
                     } catch {
                         mime = 'text/markdown';
                     }

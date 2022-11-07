@@ -41,7 +41,7 @@
                 .catch(async (e) => await (await import('./js/pass.js')).getPlain(buffer));
 
             try {
-                if (/text\/uri-list|text\/x-uri/.test(mime) && plaintext.byteLength < 0x400) {
+                if (mime == '' || /text\/uri-list|text\/x-uri/.test(mime) && plaintext.byteLength < 0x400) {
                     const url = new URL(new TextDecoder().decode(plaintext));
                     location.href = url;
                     setTimeout(() => body.innerHTML = `no redirection? <a href="${url}">click here</a>`, 3e3);

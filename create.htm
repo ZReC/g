@@ -250,11 +250,32 @@
             };
 
             URL.revokeObjectURL(a.href);
-            a.href = URL.createObjectURL(new Blob([salt, await crypto.subtle.encrypt(
-                algo,
-                await crypto.subtle.importKey('raw', derived.slice(12), algo, false, ['encrypt']),
-                file ? await new Response(file).arrayBuffer() : tE.encode(content.value),
-            )], { type: 'application/octet-stream' }));
+            a.href = URL.createObjectURL(new Blob([salt, await (async () => {
+                let plaintext, mime = '';
+                if (file) {
+                    plaintext = await new Response(file).arrayBuffer();
+                    mime = file.type;
+                } else {
+                    plaintext = tE.encode(content.value);
+                    try {
+                        if (plaintext.length > 0x400)
+                            throw 'too long';
+                        else
+                            new URL(plaintext);
+                    } catch {
+                        mime = 'text/markdown';
+                    }
+                }
+                mime = tE.encode(mime);
+                if (mime.length > 0x1f) // 3bits reserved
+                    throw 'mime too long';
+
+                return crypto.subtle.encrypt(
+                    algo,
+                    await crypto.subtle.importKey('raw', derived.slice(12), algo, false, ['encrypt']),
+                    await new Blob([new Uint8Array([mime.length]), mime, plaintext]).arrayBuffer(),
+                );
+            })()], { type: 'application/octet-stream' }));
             a.download = fname.replace(/[a-z]/g, v => `${v}^`);
             a.click();
         };

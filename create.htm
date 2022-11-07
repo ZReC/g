@@ -281,6 +281,7 @@
 
         fileName.addEventListener('click', () => {
             content.readOnly = false;
+            fileOpen.value = '';
             file = undefined;
         });
 
@@ -299,10 +300,6 @@
             if ([...e.dataTransfer.types].filter(v => v.match(/^text/)).length == 0) {
                 e.preventDefault();
             }
-        });
-
-        content.addEventListener('click', e => {
-            console.log(e.target.disabled);
         });
 
         import('https://cdn.jsdelivr.net/gh/zrec/shannon-entropy-wasm/pkg/entropy.js').then(async v => {

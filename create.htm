@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>create file</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            all: unset;
+            user-select: none;
+            color: white;
+            background-color: black;
+            font-family: monospace;
+            font-size: 1.15cm;
+        }
+
+        input,
+        #content {
+            all: unset;
+        }
+
+        input::placeholder,
+        textarea::placeholder,
+        .wrapper div {
+            color: grey;
+            font-style: italic;
+        }
+
+        #main {
+            display: flex;
+            height: 100vh;
+            padding: 2vh;
+            box-sizing: border-box;
+            flex-direction: column;
+            text-align: center;
+            align-items: center;
+            overflow: hidden;
+            justify-content: space-evenly;
+        }
+
+        #details {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            gap: 1ch;
+            justify-content: center;
+        }
+
+        a {
+            color: purple;
+            cursor: pointer;
+        }
+
+        #content:placeholder-shown+div {
+            display: initial;
+        }
+
+        #content:placeholder-shown,
+        input:placeholder-shown {
+            caret-color: transparent;
+        }
+
+        .wrapper {
+            display: grid;
+            position: relative;
+            border: dashed;
+            border-radius: 1ch;
+            min-width: 50%;
+            max-width: 90%;
+            max-height: 50%;
+            overflow: hidden;
+            flex: none;
+        }
+
+        .wrapper::after {
+            content: attr(data-v) " ";
+            white-space: pre-wrap;
+            visibility: hidden;
+        }
+
+        #content {
+            white-space: pre-wrap;
+            resize: none;
+            overflow: hidden;
+        }
+
+        #file-name {
+            display: none;
+            position: relative;
+            cursor: pointer;
+            color: aquamarine;
+        }
+
+        #file-name:hover {
+            color: crimson;
+        }
+
+        #content+div {
+            display: none;
+            position: relative;
+            pointer-events: none;
+        }
+
+        #content:read-only,
+        #content:read-only+div {
+            display: none;
+        }
+
+        #content:read-only+div+div {
+            display: initial;
+        }
+
+        .wrapper::after,
+        #content,
+        .wrapper div {
+            padding: 4vh;
+            font: inherit;
+            grid-area: 1 / 1 / 2 / 2;
+        }
+
+        .field {
+            display: flex;
+            width: fit-content;
+            border-color: darkred;
+            background-color: darkred;
+            border-style: solid;
+            border-radius: 1ch;
+            overflow: hidden;
+        }
+
+        .field-v {
+            all: unset;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            width: 8ch;
+            padding: 0 1ch 0 1ch;
+            background-color: black;
+        }
+    </style>
+</head>
+
+<body style="display: none;">
+    <a id="a"></a>
+    <div id="main">
+        <div class="wrapper">
+            <textarea id="content" placeholder=" " type="text" spellcheck="false" rows="1"
+                oninput="this.parentNode.dataset.v = this.value"></textarea>
+            <div><a id="open-file" style="pointer-events: all;">open</a>/drop/paste file or type url/md</div>
+            <div id="file-name">testing</div>
+        </div>
+        <div id="details">
+            <div>
+                <div style="font-size: .5em;">
+                    <i>NAME LEN:</i>
+                    <input id="pass-length" oninput="randname()"
+                        style="width: 2ch; background-color: darkred;padding: 0 .5vw 0 .5vw; border-radius: 1ch 1ch 0 0;"
+                        type="text" inputmode="numeric" min="2" max="32" value="6">
+                </div>
+                <div class="field" onclick="randname()">
+                    <div id="out-name" class="field-v">abcdef</div>
+                    <svg id="download" style="padding: 0 1vw 0 1vw;width: 2ch;" width="100%" viewBox="0 0 48 48">
+                        <path fill="currentColor"
+                            d="M24 40q-6.65 0-11.325-4.675Q8 30.65 8 24q0-6.65 4.675-11.325Q17.35 8 24 8q4.25 0 7.45 1.725T37 14.45V8h3v12.7H27.3v-3h8.4q-1.9-3-4.85-4.85Q27.9 11 24 11q-5.45 0-9.225 3.775Q11 18.55 11 24q0 5.45 3.775 9.225Q18.55 37 24 37q4.15 0 7.6-2.375 3.45-2.375 4.8-6.275h3.1q-1.45 5.25-5.75 8.45Q29.45 40 24 40Z" />
+                    </svg>
+                </div>
+            </div>
+            <div>
+                <div title="passwordLength * shannonEntropy"
+                    style="display: flex;font-size: .5em;justify-content: center;cursor: help;">
+                    <i>ENTROPY: </i>
+                    <div id="pass-entropy"></div>
+                </div>
+                <div class="field">
+                    <input id="pass" class="field-v" type="password" placeholder="lol123">
+                    <svg id="pass-btn" style="padding: 0 1vw 0 1vw;width: 2ch;" width="100%" viewBox="0 0 48 48">
+                        <path fill="currentColor"
+                            d="M11 40q-1.2 0-2.1-.9Q8 38.2 8 37v-7.15h3V37h26v-7.15h3V37q0 1.2-.9 2.1-.9.9-2.1.9Zm13-7.65-9.65-9.65 2.15-2.15 6 6V8h3v18.55l6-6 2.15 2.15Z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let file;
+        let encodedPass;
+        const tE = new TextEncoder();
+        const dic = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-';
+        const fileOpen = document.createElement('input');
+        fileOpen.type = 'file';
+        const a = document.getElementById('a');
+        const passEntropy = document.getElementById('pass-entropy');
+        const outName = document.getElementById('out-name');
+        const pass = document.getElementById('pass');
+        const passBtn = document.getElementById('pass-btn');
+        const main = document.getElementById('main');
+        const fileName = document.getElementById('file-name');
+        const content = document.getElementById('content');
+        const nameLength = document.getElementById('pass-length');
+        content.focus();
+
+        function randname() {
+            const len = Math.min(Math.max(3, new Number(nameLength.value || 6)), 32);
+            let name = '';
+
+            const arr = new Uint8Array(len);
+            crypto.getRandomValues(arr);
+
+            for (let i = 0; i < len; i++)
+                name += dic[arr[i] % 64];
+
+            outName.textContent = name;
+        }; randname();
+
+        async function saveFile() {
+            const fname = outName.textContent;
+            const material = await crypto.subtle.importKey(
+                'raw',
+                encodedPass,
+                { name: 'pbkdf2' },
+                false,
+                ['deriveBits']
+            );
+
+            randname();
+            pass.value = '';
+
+            const salt = new Uint8Array(16);
+            crypto.getRandomValues(salt);
+
+            const derived = await crypto.subtle.deriveBits({
+                name: 'pbkdf2',
+                hash: 'sha-512',
+                salt: salt,
+                iterations: 151681
+            }, material, 352);
+
+            const algo = {
+                name: 'aes-gcm',
+                iv: derived.slice(0, 12),
+                additionalData: tE.encode('ひとりぼっちの○○生活')
+            };
+
+            URL.revokeObjectURL(a.href);
+            a.href = URL.createObjectURL(new Blob([salt, await crypto.subtle.encrypt(
+                algo,
+                await crypto.subtle.importKey('raw', derived.slice(12), algo, false, ['encrypt']),
+                file ? await new Response(file).arrayBuffer() : tE.encode(content.value),
+            )], { type: 'application/octet-stream' }));
+            a.download = fname.replace(/[a-z]/g, v => `${v}^`);
+            a.click();
+        };
+        pass.onkeyup = e => e.key == 'Enter' && saveFile();
+        passBtn.onclick = e => saveFile();
+
+        async function loadFile(e, items) {
+            if (!items[0])
+                return;
+
+            e.preventDefault();
+            const entry = ['getAsEntry', 'webkitGetAsEntry'].find(m => items[m]);
+            if (entry && items[entry]().isDirectory) {
+                throw "won't handle a directory";
+            }
+
+            if (items.length > 1)
+                throw "won't handle more than one file";
+
+            file = items[0].constructor == File ? items[0] : items[0].getAsFile();
+            content.readOnly = true;
+            fileName.textContent = file.name;
+        }
+
+        fileName.addEventListener('click', () => {
+            content.readOnly = false;
+            file = undefined;
+        });
+
+        document.getElementById('open-file').addEventListener('click', e => {
+            fileOpen.click();
+        });
+
+        fileOpen.addEventListener('change', e =>
+            loadFile(e, e.target.files));
+        addEventListener('paste', e =>
+            loadFile(e, [...e.clipboardData.items].filter(i => i.kind == 'file')));
+        addEventListener('drop', e =>
+            loadFile(e, [...e.dataTransfer.items].filter(i => i.kind == 'file')));
+
+        addEventListener('dragover', e => {
+            if ([...e.dataTransfer.types].filter(v => v.match(/^text/)).length == 0) {
+                e.preventDefault();
+            }
+        });
+
+        content.addEventListener('click', e => {
+            console.log(e.target.disabled);
+        });
+
+        import('https://cdn.jsdelivr.net/gh/zrec/shannon-entropy-wasm/pkg/entropy.js').then(async v => {
+            await v.default();
+            pass.oninput = e => {
+                const currentPass = pass.value || 'lol123';
+                encodedPass = tE.encode(currentPass);
+                passEntropy.textContent = `${(encodedPass.byteLength * v.shannon_entropy(currentPass)).toFixed(1)}bits`;
+            }; pass.oninput();
+
+            document.body.style.display = '';
+        });
+    </script>
+</body>
+
+</html>

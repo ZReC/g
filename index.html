@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html style="user-select: none;color:#eee;background-color: #000;" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <script type="module">
+        const goto = location.search.slice(1).split('+')[0].split('~');
+        const body = document.body;
+        const tE = new TextEncoder();
+
+        window.undoAES = async (buffer, pass = 'lol123') => {
+            const material = await crypto.subtle.importKey(
+                "raw",
+                tE.encode(pass),
+                { name: "PBKDF2" },
+                false,
+                ["deriveBits"]
+            );
+            const derived = await crypto.subtle.deriveBits({
+                name: "pbkdf2",
+                hash: "sha-512",
+                salt: buffer.slice(0, 16),
+                iterations: 151681
+            }, material, 352);
+            const algo = {
+                name: 'aes-gcm',
+                iv: derived.slice(0, 12),
+                additionalData: tE.encode('ひとりぼっちの○○生活')
+            };
+            return crypto.subtle.decrypt(
+                algo,
+                await crypto.subtle.importKey("raw", derived.slice(12), algo, false, ["decrypt"]),
+                buffer.slice(16)
+            );
+        };
+
+        window.loadContents = async (buffer, pass) => {
+            let plaintext = await undoAES(buffer, pass)
+                .catch(async () => await (await import('./js/pass.js')).getPlain(buffer));
+            try {
+                if (plaintext.byteLength > 0x400)
+                    throw 'too long';
+                const url = new URL(new TextDecoder().decode(plaintext));
+                location.href = url;
+                await new Promise(r => setTimeout(() => r(), 3e3));
+                body.innerHTML = 'no redirection? <a>click here</a>';
+                body.querySelector('a').href = url;
+            } catch {
+                body.innerHTML = '';
+                (await import('./js/render.js')).render(plaintext);
+            }
+        };
+
+        try {
+            if (goto != '') {
+                const res = await fetch(`oto/${goto[0].replace(/([a-z])/g, v => `${v}^`)}`);
+                if (res.status == 200) {
+                    loadContents(await(await res.blob()).arrayBuffer());
+                } else throw `Error: ${res.status} ${res.statusText}`;
+            } else throw '🎻🎹';
+        } catch (e) {
+            (await import('./js/fallback.js')).def(e);
+        }
+    </script>
+</head>
+<noscript>javascript needed</noscript>
+
+</html>

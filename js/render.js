@@ -4,8 +4,8 @@ let urlObject;
 
 
 export async function render(mime, plaintext) {
+    let container, [type, subtype] = mime.split('/');
     if (plaintext.byteLength < 0x8000000 && confirm('Render contents?')) {
-        let container, [type, subtype] = mime.split('/');
         const tD = new TextDecoder();
 
         URL.revokeObjectURL(urlObject);
@@ -13,14 +13,15 @@ export async function render(mime, plaintext) {
             switch (type) {
                 case '':
                 case 'text':
-                    switch(subtype) {
+                    switch (subtype) {
+                        case 'md':
                         case 'x-markdown':
                         case 'markdown':
                             await import('https://cdn.jsdelivr.net/npm/marked/marked.min.js');
 
                             const parsed = marked.parse(tD.decode(plaintext), { gfm: true, breaks: false });
                             container = document.createElement('div');
-        
+
                             try {
                                 container.setHTML(parsed);
                             } catch {
@@ -37,7 +38,7 @@ export async function render(mime, plaintext) {
                 case 'video':
                 case 'audio':
                     container = document.createElement(type);
-                    urlObject = URL.createObjectURL(new Blob([plaintext], {type: mime}));
+                    urlObject = URL.createObjectURL(new Blob([plaintext], { type: mime }));
                     container.controls = true;
                     container.src = urlObject;
                     break;
@@ -55,8 +56,9 @@ export async function render(mime, plaintext) {
 
     } else {
         URL.revokeObjectURL(link.href);
-        link.href = URL.createObjectURL(new Blob([plaintext], { type: mime }));
-        link.download = 'plaintext';
+        const [fmime, fname] = type ? [mime, type] : ['application/octet-stream', `plaintext${subtype ? `.${subtype}` : ''}`];
+        link.href = URL.createObjectURL(new Blob([plaintext], { type: fmime }));
+        link.download = fname;
         link.click();
     }
 }

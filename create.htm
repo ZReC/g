@@ -254,7 +254,14 @@
                 let plaintext, mime = '';
                 if (file) {
                     plaintext = await new Response(file).arrayBuffer();
-                    mime = file.type;
+                    mime = (() => {
+                        if (file.type) {
+                            return file.type;
+                        } else {
+                            const name = file.name.split('.');
+                            return name.length > 1 ? `/${name.pop()}` : '';
+                        }
+                    })();
                 } else {
                     plaintext = tE.encode(content.value);
                     try {

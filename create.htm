@@ -266,7 +266,7 @@
                     plaintext = tE.encode(content.value);
                     try {
                         if (plaintext.byteLength > 0x400)
-                            throw 'too long';
+                            throw new Error('url length exceeded');
                         else
                             new URL(content.value);
                     } catch {
@@ -275,7 +275,7 @@
                 }
                 mime = tE.encode(mime);
                 if (mime.length > 0x1f) // 3bits reserved
-                    throw 'mime too long';
+                    throw new Error(`mime length exceeded (max ${0x1f}bytes)`);
 
                 return crypto.subtle.encrypt(
                     algo,

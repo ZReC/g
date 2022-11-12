@@ -2,10 +2,7 @@
 <html style="user-select: none;color:#eee;background-color: #000;" lang="en">
 
 <head>
-    <meta charset="utf-8">
     <script type="module">
-        const goto = location.search.slice(1).split('+')[0].split('~');
-        const body = document.body;
         const tE = new TextEncoder();
 
         window.undoAES = async (buffer, pass = 'lol123') => {
@@ -17,51 +14,47 @@
             const derived = await crypto.subtle.deriveBits({
                 name: "pbkdf2",
                 hash: "sha-512",
-                salt: buffer.slice(0, 16), iterations: 151681
+                salt: new DataView(buffer, 0, 16), iterations: 151681
             }, material, 352);
             const algo = {
                 name: 'aes-gcm',
-                iv: derived.slice(0, 12),
+                iv: new DataView(derived, 0, 12),
                 additionalData: tE.encode('ひとりぼっちの○○生活')
             };
             const plaintext = await crypto.subtle.decrypt(
                 algo,
-                await crypto.subtle.importKey("raw", derived.slice(12), algo, false, ["decrypt"]),
-                buffer.slice(16)
-            );
-            const mimeLen = 1 + new Uint8Array(plaintext.slice(0, 1))[0];
+                await crypto.subtle.importKey("raw", new DataView(derived, 12), algo, false, ["decrypt"]),
+                new DataView(buffer, 16)
+            ).catch(() => { throw new DataView(buffer); });
+
+            const mimeLen = new DataView(plaintext).getUint8();
             return [
-                new TextDecoder().decode(plaintext.slice(1, mimeLen)),
-                plaintext.slice(mimeLen)
-            ];
+                new TextDecoder().decode(new DataView(plaintext, 1, mimeLen)),
+                new DataView(plaintext, 1 + mimeLen)];
         };
 
-        window.loadContents = async (buffer, pass) => {
-            let [mime, plaintext] = await undoAES(buffer, pass)
-                .catch(async (e) => await (await import('./js/pass.js')).getPlain(buffer));
-
-            try {
+        window.loadBuffer = async (buffer) => {
+            let [mime, plaintext] = await undoAES(buffer, undefined); try {
                 if (mime == '' || /text\/uri-list|text\/x-uri/.test(mime) && plaintext.byteLength < 0x400) {
                     const url = new URL(new TextDecoder().decode(plaintext));
                     location.href = url;
-                    setTimeout(() => body.innerHTML = `no redirection? <a href="${url}">click here</a>`, 3e3);
-                } else throw 'invalid url';
-            } catch {
-                body.innerHTML = '';
-                (await import('./js/render.js')).render(mime, plaintext);
-            }
+                    return setTimeout(() => document.body.innerHTML = `no redirection? <a href="${url}">click here</a>`, 3e3);
+                } else throw new Error(`invalid url`);
+            } catch (e) { console.error(e); }
+            throw [mime, plaintext];
         };
 
-        try {
-            if (goto != '') {
-                const res = await fetch(`oto/${goto[0].replace(/([a-z])/g, v => `${v}^`)}`);
-                if (res.status == 200) {
-                    loadContents(await(await res.blob()).arrayBuffer());
-                } else throw `Error: ${res.status} ${res.statusText}`;
+        window.loadHash = async () => {
+            const hash = location.hash.slice(1).split('~')[0];
+            if (hash) {
+                const r = await fetch((() => { try { return new URL(hash); } catch { return `oto/${hash.replace(/([a-z])/g, v => `${v}^`)}`; } })());
+                if (r.status == 200)
+                    await loadBuffer(await r.arrayBuffer());
+                else throw new Error(`${r.status} ${r.statusText}`);
             } else throw '🎻🎹';
-        } catch (e) {
-            (await import('./js/fallback.js')).def(e);
-        }
+        };
+
+        loadHash().catch(async o => (await import('./script.js')).init(o));
     </script>
 </head>
 <noscript>javascript needed</noscript>

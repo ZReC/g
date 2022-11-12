@@ -1,0 +1,60 @@
+:root {
+    display: flex;
+    justify-content: center;
+    font-family: monospace;
+    font-size: 1.15cm;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    color: purple;
+    cursor: pointer;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    text-align: center;
+}
+
+body {
+    display: flex;
+    max-width: 90vw;
+    min-height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.field {
+    all: unset;
+    display: flex;
+    width: fit-content;
+    border-color: darkred;
+    background-color: darkred;
+    border-style: solid;
+    border-radius: 1ch;
+    overflow: hidden;
+}
+
+#pass {
+    all: unset;
+    text-align: initial;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 12ch;
+    padding: 0 2ch 0 2ch;
+    background-color: black;
+}
+
+#pass::placeholder {
+    font-style: italic;
+}
+
+#pass-btn {
+    padding: 0 1vw 0 1vw;
+    width: 2ch;
+}

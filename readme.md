@@ -4,7 +4,7 @@
 
 ## Examples (see [oto](oto))
 
-This should redirect to github.com
+This should redirect to **github.com**
 > https://zrec.github.io/g#6_V-io
 
 Here is another example:

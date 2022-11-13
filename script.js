@@ -1,7 +1,7 @@
-const body = document.body;
+const main = document.body.appendChild(document.createElement('main'));
 const style = document.createElement('link'); {
     style.rel = 'stylesheet';
-    style.href = '/style.css';
+    style.href = 'style.css';
     const done = new Promise(r => style.onload = () => r());
     document.head.appendChild(style);
     await done;
@@ -45,13 +45,27 @@ addEventListener('drop', e =>
     loadFile(e, [...e.dataTransfer.items].filter(i => i.kind == 'file')));
 addEventListener('dragover', e => e.preventDefault());
 
+const dialog = document.body.appendChild(document.createElement('dialog'));
+const btnrend = dialog.appendChild(document.createElement('div'));
+const btndown = dialog.appendChild(document.createElement('div'));
+btnrend.textContent = 'render';
+btndown.textContent = 'download';
+
+async function doRender() {
+    dialog.style.display = 'flex';
+    return await new Promise(r => {
+        btnrend.onclick = () => r(true);
+        btndown.onclick = () => r(false);
+    }).finally(() => { btnrend.onclick = btndown.onclick = undefined; dialog.style.display = ''; });
+}
+
 const hyper = document.createElement('a');
 let container, urlObject;
 
 async function render(mime, plaintext) {
     let [type, subtype] = mime.split('/');
-    if (plaintext.byteLength < 0x8000000 && confirm('Render contents?')) {
-        body.innerHTML = '';
+    if (plaintext.byteLength < 0x8000000 && await doRender()) {
+        main.innerHTML = '';
         URL.revokeObjectURL(urlObject);
         const tD = new TextDecoder();
 
@@ -98,7 +112,7 @@ async function render(mime, plaintext) {
         }
 
         container.style = 'white-space: pre;user-select: text; font-size: 2vw;';
-        body.appendChild(container);
+        main.appendChild(container);
 
     } else {
         const [fmime, fname] = type ? [mime, type] : ['application/octet-stream', `plaintext${subtype ? `.${subtype}` : ''}`];
@@ -121,14 +135,14 @@ const pass = passfield.querySelector('#pass');
 const passBtn = passfield.querySelector('#pass-btn');
 
 function password(buffer) {
-    body.innerHTML = '';
-    body.appendChild(passfield);
+    main.innerHTML = '';
+    main.appendChild(passfield);
     pass.focus();
     return new Promise(r => {
         const send = async () => {
             try {
                 r(await undoAES(buffer, pass.value));
-                body.removeChild(passfield);
+                main.removeChild(passfield);
             } finally {
                 pass.value = '';
             };
@@ -148,8 +162,8 @@ export async function init(how) {
             render(how[0], how[1]);
             break;
         default:
-            body.innerHTML = '';
+            main.innerHTML = '';
             msg.innerText = how;
-            body.appendChild(advice);
+            main.appendChild(advice);
     }
 }

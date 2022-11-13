@@ -34,12 +34,12 @@
         };
 
         window.loadBuffer = async (buffer) => {
-            let [mime, plaintext] = await undoAES(buffer, undefined); try {
+            let [mime, plaintext] = await undoAES(buffer); try {
                 if (mime == '' || /text\/uri-list|text\/x-uri/.test(mime) && plaintext.byteLength < 0x400) {
                     const url = new URL(new TextDecoder().decode(plaintext));
                     location.href = url;
                     return setTimeout(() => document.body.innerHTML = `no redirection? <a href="${url}">click here</a>`, 3e3);
-                } else throw new Error(`invalid url`);
+                } else throw new Error(`buffer doesn't contain a url`);
             } catch (e) { console.error(e); }
             throw [mime, plaintext];
         };

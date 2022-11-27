@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&family=Noto+Sans+Mono&display=swap');
+
 :root {
     display: flex;
     justify-content: center;
-    font-family: monospace;
+    font-family: 'Noto Color Emoji', 'Noto Sans Mono', monospace;
     font-size: 1.15cm;
 }
 
